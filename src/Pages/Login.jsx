@@ -1,7 +1,18 @@
+/* eslint-disable no-unused-vars */
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  InputAdornment,
+} from '@mui/material';
+import { Email, Lock } from '@mui/icons-material';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -14,23 +25,86 @@ export default function Login() {
       const res = await axios.post('http://localhost:5000/api/auth/login', form);
       login(res.data.user, res.data.token);
       navigate('/dashboard');
-    // eslint-disable-next-line no-unused-vars
     } catch (err) {
       alert('Login failed');
     }
   };
 
   return (
-    <div className="max-w-md mx-auto mt-10 bg-white p-6 rounded shadow">
-      <h2 className="text-xl font-semibold mb-4">Login</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="email" name="email" placeholder="Email" required className="input" onChange={e => setForm({ ...form, email: e.target.value })} />
-        <input type="password" name="password" placeholder="Password" required className="input mt-2" onChange={e => setForm({ ...form, password: e.target.value })} />
-        <button className="btn-primary w-full mt-4">Login</button>
-        <p className="text-sm mt-4 text-center">
-          Don't have an account? <Link to="/register" className="text-blue-600">Register</Link>
-        </p>
-      </form>
-    </div>
+    <Box
+      className="relative min-h-screen flex items-center justify-center px-4"
+      style={{
+        backgroundImage: "url('/logo.png')",  
+        backgroundRepeat: "no-repeat",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundColor: "#333", // fallback color
+      }}
+    >
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black bg-opacity-50 z-0" />
+
+      {/* Login Card */}
+      <Paper
+        elevation={10}
+        className="relative z-10 w-full max-w-md sm:max-w-lg bg-white bg-opacity-90 backdrop-blur-md p-8 rounded-2xl shadow-lg"
+      >
+        <Typography variant="h4" className="text-center font-bold text-gray-800 mb-6">
+          Login to Your Account
+        </Typography>
+
+        <form onSubmit={handleSubmit}>
+          <TextField
+            label="Email"
+            type="email"
+            fullWidth
+            required
+            margin="normal"
+            value={form.email}
+            onChange={e => setForm({ ...form, email: e.target.value })}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Email />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <TextField
+            label="Password"
+            type="password"
+            fullWidth
+            required
+            margin="normal"
+            value={form.password}
+            onChange={e => setForm({ ...form, password: e.target.value })}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Lock />
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            size="large"
+            className="mt-6"
+          >
+            Login
+          </Button>
+
+          <Typography variant="body2" className="text-center mt-4">
+            Don&apos;t have an account?{' '}
+            <Link to="/register" className="text-blue-600 hover:underline">
+              Register
+            </Link>
+          </Typography>
+        </form>
+      </Paper>
+    </Box>
   );
 }
