@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -11,11 +11,27 @@ import {
   FormControl,
   Typography,
   Paper,
+  Box,
 } from '@mui/material';
 
 export default function Register() {
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: '' });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: '',
+  });
   const navigate = useNavigate();
+
+  // Prevent scroll on mount and clean up on unmount
+  useEffect(() => {
+    // Disable scroll
+    document.body.style.overflow = 'hidden';
+    return () => {
+      // Re-enable scroll on unmount
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,73 +54,100 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 lg:grid-cols-2">
-      {/* Left side with logo */}
-      <div className="bg-blue-700 flex items-center justify-center p-10">
-        <img
-          src="https://via.placeholder.com/300x300?text=Your+Logo"
-          alt="Logo"
-          className="w-72 h-72 object-contain"
-        />
-      </div>
-
-      {/* Right side with registration form */}
-      <div className="flex items-center justify-center bg-gray-50 p-6">
-        <Paper elevation={3} className="w-full max-w-md p-6">
-          <Typography variant="h5" className="mb-4 text-center font-semibold">
+    <Box
+      sx={{
+        height: '100vh', // force full viewport height
+        overflow: 'hidden', // no scrollbars
+        backgroundImage:
+          "url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1470&q=80')",
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        p: 2,
+      }}
+    >
+      <Paper
+        elevation={8}
+        sx={{
+          maxWidth: 450,
+          width: '100%',
+          bgcolor: 'rgba(255,255,255,0.9)',
+          p: 4,
+          borderRadius: 3,
+          boxShadow:
+            '0 8px 32px 0 rgba(31, 38, 135, 0.37)', // glass effect
+          backdropFilter: 'blur(8.5px)',
+          WebkitBackdropFilter: 'blur(8.5px)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
+          overflowY: 'auto', // allow scroll inside form if needed
+          maxHeight: '90vh', // prevent form from overflowing viewport
+        }}
+      >
+        <Typography
+          variant="h4"
+          align="center"
+          fontWeight="700"
+          color="primary.main"
+          mb={3}
+        >
+          Register
+        </Typography>
+        <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.25rem' }}>
+          <TextField
+            label="Name"
+            variant="outlined"
+            fullWidth
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+          />
+          <TextField
+            label="Email"
+            type="email"
+            variant="outlined"
+            fullWidth
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            required
+          />
+          <TextField
+            label="Password"
+            type="password"
+            variant="outlined"
+            fullWidth
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            required
+          />
+          <FormControl fullWidth required>
+            <InputLabel>Role</InputLabel>
+            <Select
+              value={form.role}
+              label="Role"
+              onChange={(e) => setForm({ ...form, role: e.target.value })}
+            >
+              <MenuItem value="">Select Role</MenuItem>
+              <MenuItem value="Ticket Maker">Ticket Maker</MenuItem>
+              <MenuItem value="Checker">Checker</MenuItem>
+              <MenuItem value="DFS Team">DFS Team</MenuItem>
+              <MenuItem value="IT Team">IT Team</MenuItem>
+              <MenuItem value="Admin">Admin</MenuItem>
+            </Select>
+          </FormControl>
+          <Button type="submit" variant="contained" color="primary" size="large" fullWidth>
             Register
+          </Button>
+          <Typography variant="body2" align="center" mt={2}>
+            Already have an account?{' '}
+            <Link to="/login" className="text-blue-600 underline">
+              Login
+            </Link>
           </Typography>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <TextField
-              label="Name"
-              variant="outlined"
-              fullWidth
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-            <TextField
-              label="Email"
-              type="email"
-              variant="outlined"
-              fullWidth
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-            />
-            <TextField
-              label="Password"
-              type="password"
-              variant="outlined"
-              fullWidth
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-            />
-            <FormControl fullWidth>
-              <InputLabel>Role</InputLabel>
-              <Select
-                value={form.role}
-                label="Role"
-                onChange={(e) => setForm({ ...form, role: e.target.value })}
-              >
-                <MenuItem value="">Select Role</MenuItem>
-                <MenuItem value="Ticket Maker">Ticket Maker</MenuItem>
-                <MenuItem value="Checker">Checker</MenuItem>
-                <MenuItem value="DFS Team">DFS Team</MenuItem>
-                <MenuItem value="IT Team">IT Team</MenuItem>
-                <MenuItem value="Admin">Admin</MenuItem>
-              </Select>
-            </FormControl>
-            <Button type="submit" variant="contained" color="primary" fullWidth>
-              Register
-            </Button>
-            <Typography variant="body2" align="center">
-              Already have an account?{' '}
-              <Link to="/login" className="text-blue-600 underline">
-                Login
-              </Link>
-            </Typography>
-          </form>
-        </Paper>
-      </div>
-    </div>
+        </form>
+      </Paper>
+    </Box>
   );
 }
