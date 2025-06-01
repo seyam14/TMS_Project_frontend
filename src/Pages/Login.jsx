@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -19,7 +19,15 @@ export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = async e => {
+  // Disable scroll on mount and enable on unmount
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:5000/api/auth/login', form);
@@ -32,28 +40,52 @@ export default function Login() {
 
   return (
     <Box
-      className="relative min-h-screen flex items-center justify-center px-4"
-      style={{
-        backgroundImage: "url('/logo.png')",  
-        backgroundRepeat: "no-repeat",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundColor: "#333", // fallback color
+      sx={{
+        height: '100vh',         // fix height to viewport
+        overflow: 'hidden',      // disable scrolling inside container
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'relative',
+        backgroundImage: "url('/logo.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          inset: 0,
+          bgcolor: 'rgba(0,0,0,0.6)',
+          zIndex: 1,
+        },
       }}
     >
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black bg-opacity-50 z-0" />
-
-      {/* Login Card */}
       <Paper
-        elevation={10}
-        className="relative z-10 w-full max-w-md sm:max-w-lg bg-white bg-opacity-90 backdrop-blur-md p-8 rounded-2xl shadow-lg"
+        elevation={12}
+        sx={{
+          position: 'relative',
+          zIndex: 2,
+          maxWidth: 420,
+          width: '90%',
+          p: 5,
+          borderRadius: 3,
+          bgcolor: 'rgba(255, 255, 255, 0.95)',
+          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+          backdropFilter: 'blur(12px)',
+          textAlign: 'center',
+          '@media (max-width:600px)': {
+            p: 4,
+          },
+          '@media (min-width:601px) and (max-width:960px)': {
+            p: 5,
+          },
+        }}
       >
-        <Typography variant="h4" className="text-center font-bold text-gray-800 mb-6">
+        <Typography variant="h4" sx={{ mb: 4, fontWeight: '700', color: '#222' }}>
           Login to Your Account
         </Typography>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <TextField
             label="Email"
             type="email"
@@ -61,15 +93,16 @@ export default function Login() {
             required
             margin="normal"
             value={form.email}
-            onChange={e => setForm({ ...form, email: e.target.value })}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <Email />
+                  <Email color="action" />
                 </InputAdornment>
               ),
             }}
           />
+
           <TextField
             label="Password"
             type="password"
@@ -77,33 +110,34 @@ export default function Login() {
             required
             margin="normal"
             value={form.password}
-            onChange={e => setForm({ ...form, password: e.target.value })}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
-                  <Lock />
+                  <Lock color="action" />
                 </InputAdornment>
               ),
             }}
           />
+
           <Button
             type="submit"
             variant="contained"
             color="primary"
             fullWidth
             size="large"
-            className="mt-6"
+            sx={{ mt: 4, fontWeight: '600' }}
           >
             Login
           </Button>
-
-          <Typography variant="body2" className="text-center mt-4">
-            Don&apos;t have an account?{' '}
-            <Link to="/register" className="text-blue-600 hover:underline">
-              Register
-            </Link>
-          </Typography>
         </form>
+
+        <Typography variant="body2" sx={{ mt: 3, color: '#555' }}>
+          Don&apos;t have an account?{' '}
+          <Link to="/register" className="text-blue-600 hover:underline font-semibold">
+            Register
+          </Link>
+        </Typography>
       </Paper>
     </Box>
   );
