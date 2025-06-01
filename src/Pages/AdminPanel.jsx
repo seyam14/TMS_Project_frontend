@@ -1,18 +1,51 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
-// src/pages/AdminPanel.jsx
 import { useEffect, useState } from 'react';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Select,
+  MenuItem,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  Chip,
+  TableSortLabel,
+  Typography
+} from '@mui/material';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 
-export default function AdminPanel() {
+const getRoleColor = (role) => {
+  switch (role) {
+    case 'Admin': return 'error';
+    case 'IT Team': return 'primary';
+    case 'DFS Team': return 'secondary';
+    case 'Checker': return 'info';
+    case 'Ticket Maker': return 'success';
+    default: return 'default';
+  }
+};
+
+const AdminPanel = () => {
   const [users, setUsers] = useState([]);
+  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'Ticket Maker' });
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [order, setOrder] = useState('asc');
+  const [orderBy, setOrderBy] = useState('name');
+
   const token = localStorage.getItem('token');
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'Ticket Maker'
-  });
 
   const fetchUsers = async () => {
     try {
@@ -20,97 +53,114 @@ export default function AdminPanel() {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data);
-    } catch (err) {
-      alert('Failed to fetch users');
+    } catch {
+      Swal.fire('Error', 'Failed to fetch users', 'error');
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  useEffect(() => { fetchUsers(); }, []);
 
-  const handleCreateUser = async e => {
-    e.preventDefault();
+  const handleCreateUser = async () => {
     try {
       await axios.post('http://localhost:5000/api/auth/register', form, {
         headers: { Authorization: `Bearer ${token}` },
       });
+      Swal.fire('Success', 'User created successfully!', 'success');
       fetchUsers();
-    } catch (err) {
-      alert('Failed to create user');
+      setOpen(false);
+    } catch {
+      Swal.fire('Error', 'Failed to create user', 'error');
     }
   };
 
-  const handleDeleteUser = async (id) => {
-    // Delete not defined in backend yet; this is a placeholder
-    alert('Delete feature not implemented in backend. (You can add this later)');
+  const handleRequestSort = (property) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
   };
 
-  return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Admin Panel</h2>
-
-      <form onSubmit={handleCreateUser} className="mb-6 p-4 bg-white shadow rounded space-y-3">
-        <h3 className="text-lg font-semibold mb-2">Create User</h3>
-        <input
-          name="name"
-          placeholder="Name"
-          className="input"
-          onChange={e => setForm({ ...form, name: e.target.value })}
-        />
-        <input
-          name="email"
-          placeholder="Email"
-          className="input"
-          type="email"
-          onChange={e => setForm({ ...form, email: e.target.value })}
-        />
-        <input
-          name="password"
-          placeholder="Password"
-          className="input"
-          type="password"
-          onChange={e => setForm({ ...form, password: e.target.value })}
-        />
-        <select
-          name="role"
-          className="input"
-          onChange={e => setForm({ ...form, role: e.target.value })}
-        >
-          <option value="Ticket Maker">Ticket Maker</option>
-          <option value="Checker">Checker</option>
-          <option value="DFS Team">DFS Team</option>
-          <option value="IT Team">IT Team</option>
-          <option value="Admin">Admin</option>
-        </select>
-        <button type="submit" className="btn-primary w-full">Create User</button>
-      </form>
-
-      <h3 className="text-lg font-semibold mb-2">All Users</h3>
-      <table className="w-full border text-left">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="p-2">Name</th>
-            <th className="p-2">Email</th>
-            <th className="p-2">Role</th>
-            <th className="p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map(user => (
-            <tr key={user._id} className="border-t">
-              <td className="p-2">{user.name}</td>
-              <td className="p-2">{user.email}</td>
-              <td className="p-2">{user.role}</td>
-              <td className="p-2">
-                <button onClick={() => handleDeleteUser(user._id)} className="text-red-600 hover:underline">
-                  Delete (TODO)
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+  const filteredUsers = users.filter(user =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
-}
+
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    if (order === 'asc') return a[orderBy].localeCompare(b[orderBy]);
+    return b[orderBy].localeCompare(a[orderBy]);
+  });
+
+  return (
+    <Box sx={{ p: 3 }}>
+      <Box className="flex justify-between items-center mb-4">
+        <Typography variant="h4">Admin Panel</Typography>
+      </Box>
+
+      <Button variant="contained" onClick={() => setOpen(true)}>Create User</Button>
+
+      <TextField
+        fullWidth
+        label="Search Users"
+        variant="outlined"
+        className="my-4"
+        value={searchQuery}
+        onChange={e => setSearchQuery(e.target.value)}
+      />
+
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>
+                <TableSortLabel
+                  active={orderBy === 'name'}
+                  direction={order}
+                  onClick={() => handleRequestSort('name')}
+                >Name</TableSortLabel></TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Role</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {sortedUsers.map(user => (
+              <TableRow key={user._id}>
+                <TableCell>{user.name}</TableCell>
+                <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <Chip label={user.role} color={getRoleColor(user.role)} />
+                </TableCell>
+                <TableCell>
+                  <Button size="small" color="error">Delete</Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+
+      <Dialog open={open} onClose={() => setOpen(false)}>
+        <DialogTitle>Create User</DialogTitle>
+        <DialogContent className="space-y-4">
+          <TextField fullWidth label="Name" onChange={e => setForm({ ...form, name: e.target.value })} />
+          <TextField fullWidth label="Email" onChange={e => setForm({ ...form, email: e.target.value })} />
+          <TextField fullWidth label="Password" type="password" onChange={e => setForm({ ...form, password: e.target.value })} />
+          <Select
+            fullWidth
+            value={form.role}
+            onChange={e => setForm({ ...form, role: e.target.value })}
+          >
+            {['Ticket Maker', 'Checker', 'DFS Team', 'IT Team', 'Admin'].map(role => (
+              <MenuItem key={role} value={role}>{role}</MenuItem>
+            ))}
+          </Select>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>Cancel</Button>
+          <Button variant="contained" onClick={handleCreateUser}>Create</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  );
+};
+
+export default AdminPanel;
