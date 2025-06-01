@@ -1,25 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from 'react';
 import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Select,
-  MenuItem,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Chip,
-  TableSortLabel,
+  Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  TextField, Select, MenuItem, Table, TableBody, TableCell,
+  TableContainer, TableHead, TableRow, Paper, Chip, TableSortLabel,
   Typography
 } from '@mui/material';
 import axios from 'axios';
@@ -72,6 +56,28 @@ const AdminPanel = () => {
     }
   };
 
+  const handleDeleteUser = async (id) => {
+    const confirm = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'This will permanently delete the user!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete!',
+    });
+
+    if (confirm.isConfirmed) {
+      try {
+        await axios.delete(`http://localhost:5000/api/users/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        Swal.fire('Deleted!', 'User has been deleted.', 'success');
+        fetchUsers();
+      } catch {
+        Swal.fire('Error', 'Failed to delete user', 'error');
+      }
+    }
+  };
+
   const handleRequestSort = (property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -114,7 +120,10 @@ const AdminPanel = () => {
                   active={orderBy === 'name'}
                   direction={order}
                   onClick={() => handleRequestSort('name')}
-                >Name</TableSortLabel></TableCell>
+                >
+                  Name
+                </TableSortLabel>
+              </TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
               <TableCell>Actions</TableCell>
@@ -129,7 +138,9 @@ const AdminPanel = () => {
                   <Chip label={user.role} color={getRoleColor(user.role)} />
                 </TableCell>
                 <TableCell>
-                  <Button size="small" color="error">Delete</Button>
+                  <Button size="small" color="error" onClick={() => handleDeleteUser(user._id)}>
+                    Delete
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
