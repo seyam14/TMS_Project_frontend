@@ -1,4 +1,3 @@
-// src/pages/TicketForm.jsx
 import { useState } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -28,15 +27,34 @@ export default function TicketForm() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = e => {
+    setFiles(e.target.files);
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
     const token = localStorage.getItem('token');
-
-    const formData = new FormData();
-    Object.entries(form).forEach(([key, val]) => formData.append(key, val));
-    Array.from(files).forEach(file => formData.append('attachments', file));
+    if (!token) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Unauthorized',
+        text: 'Please login first to submit tickets.',
+      });
+      return;
+    }
 
     try {
+      const formData = new FormData();
+      Object.entries(form).forEach(([key, val]) => {
+        formData.append(key, val);
+      });
+
+      if (files.length > 0) {
+        for (let i = 0; i < files.length; i++) {
+          formData.append('attachments', files[i]);
+        }
+      }
+
       await axios.post('http://localhost:5000/api/tickets', formData, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -53,12 +71,14 @@ export default function TicketForm() {
 
       setForm({ title: '', description: '', priority: 'Low' });
       setFiles([]);
+      // Reset file input value manually (because file input is uncontrolled)
+      document.getElementById('file-input').value = '';
     } catch (err) {
       console.error(err);
       Swal.fire({
         icon: 'error',
         title: 'Oops...',
-        text: 'Something went wrong! Try again later.',
+        text: err.response?.data?.message || 'Something went wrong! Try again later.',
         confirmButtonColor: '#ef4444',
       });
     }
@@ -71,9 +91,9 @@ export default function TicketForm() {
         className="w-full max-w-2xl rounded-2xl bg-white/30 backdrop-blur-md p-8 shadow-2xl"
       >
         <Typography variant="h4" className="text-center font-bold text-blue-700 mb-6">
-          🎫  Ticket
+          🎫 Ticket
         </Typography>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
           <TextField
             label="Ticket Title"
             name="title"
@@ -111,14 +131,16 @@ export default function TicketForm() {
           </FormControl>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 block mb-1">
+            <label className="text-sm font-medium text-gray-700 block mb-1" htmlFor="file-input">
               <AttachFile className="mr-1" fontSize="small" />
-              Attach Files (optional)
+              Attach Files (Images/pdf only)
             </label>
             <input
+              id="file-input"
               type="file"
               multiple
-              onChange={e => setFiles(e.target.files)}
+              accept="image/*,application/pdf"
+              onChange={handleFileChange}
               className="w-full block text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-medium file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200"
             />
             {files.length > 0 && (
