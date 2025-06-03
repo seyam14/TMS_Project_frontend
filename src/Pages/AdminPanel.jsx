@@ -4,7 +4,7 @@ import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
   TextField, Select, MenuItem, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Paper, Chip, TableSortLabel,
-  Typography
+  Typography, Grid
 } from '@mui/material';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -22,7 +22,13 @@ const getRoleColor = (role) => {
 
 const AdminPanel = () => {
   const [users, setUsers] = useState([]);
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'Ticket Maker' });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'Ticket Maker',
+    ticketMakerId: ''
+  });
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [order, setOrder] = useState('asc');
@@ -41,9 +47,16 @@ const AdminPanel = () => {
     }
   };
 
-  useEffect(() => { fetchUsers(); }, []);
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleCreateUser = async () => {
+    if (form.role === 'Ticket Maker' && !form.ticketMakerId) {
+      Swal.fire('Error', 'Ticket Maker ID is required for Ticket Makers', 'error');
+      return;
+    }
+
     try {
       await axios.post('http://localhost:5000/api/auth/register', form, {
         headers: { Authorization: `Bearer ${token}` },
@@ -51,8 +64,15 @@ const AdminPanel = () => {
       Swal.fire('Success', 'User created successfully!', 'success');
       fetchUsers();
       setOpen(false);
-    } catch {
-      Swal.fire('Error', 'Failed to create user', 'error');
+      setForm({
+        name: '',
+        email: '',
+        password: '',
+        role: 'Ticket Maker',
+        ticketMakerId: ''
+      });
+    } catch (error) {
+      Swal.fire('Error', error?.response?.data?.message || 'Failed to create user', 'error');
     }
   };
 
@@ -95,18 +115,17 @@ const AdminPanel = () => {
   });
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box className="flex justify-between items-center mb-4">
-        <Typography variant="h4">Admin Panel</Typography>
+    <Box sx={{ p: { xs: 2, sm: 4 } }}>
+      <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h4" mb={{ xs: 2, sm: 0 }}>Admin Panel</Typography>
+        <Button variant="contained" onClick={() => setOpen(true)}>Create User</Button>
       </Box>
-
-      <Button variant="contained" onClick={() => setOpen(true)}>Create User</Button>
 
       <TextField
         fullWidth
         label="Search Users"
         variant="outlined"
-        className="my-4"
+        sx={{ mb: 2 }}
         value={searchQuery}
         onChange={e => setSearchQuery(e.target.value)}
       />
@@ -126,6 +145,7 @@ const AdminPanel = () => {
               </TableCell>
               <TableCell>Email</TableCell>
               <TableCell>Role</TableCell>
+              <TableCell>Ticket Maker ID</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -137,6 +157,7 @@ const AdminPanel = () => {
                 <TableCell>
                   <Chip label={user.role} color={getRoleColor(user.role)} />
                 </TableCell>
+                <TableCell>{user.role === 'Ticket Maker' ? user.ticketMakerId : '-'}</TableCell>
                 <TableCell>
                   <Button size="small" color="error" onClick={() => handleDeleteUser(user._id)}>
                     Delete
@@ -148,21 +169,42 @@ const AdminPanel = () => {
         </Table>
       </TableContainer>
 
-      <Dialog open={open} onClose={() => setOpen(false)}>
+      {/* Create User Dialog */}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Create User</DialogTitle>
-        <DialogContent className="space-y-4">
-          <TextField fullWidth label="Name" onChange={e => setForm({ ...form, name: e.target.value })} />
-          <TextField fullWidth label="Email" onChange={e => setForm({ ...form, email: e.target.value })} />
-          <TextField fullWidth label="Password" type="password" onChange={e => setForm({ ...form, password: e.target.value })} />
-          <Select
-            fullWidth
-            value={form.role}
-            onChange={e => setForm({ ...form, role: e.target.value })}
-          >
-            {['Ticket Maker', 'Checker', 'DFS Team', 'IT Team', 'Admin'].map(role => (
-              <MenuItem key={role} value={role}>{role}</MenuItem>
-            ))}
-          </Select>
+        <DialogContent>
+          <Grid container spacing={2} mt={1}>
+            <Grid item xs={12}>
+              <TextField fullWidth label="Name" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField fullWidth label="Email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField fullWidth label="Password" type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
+            </Grid>
+            <Grid item xs={12}>
+              <Select
+                fullWidth
+                value={form.role}
+                onChange={e => setForm({ ...form, role: e.target.value })}
+              >
+                {['Ticket Maker', 'Checker', 'DFS Team', 'IT Team', 'Admin'].map(role => (
+                  <MenuItem key={role} value={role}>{role}</MenuItem>
+                ))}
+              </Select>
+            </Grid>
+            {form.role === 'Ticket Maker' && (
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Ticket Maker ID"
+                  value={form.ticketMakerId}
+                  onChange={e => setForm({ ...form, ticketMakerId: e.target.value })}
+                />
+              </Grid>
+            )}
+          </Grid>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Cancel</Button>
