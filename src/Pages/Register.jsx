@@ -20,21 +20,41 @@ export default function Register() {
     email: '',
     password: '',
     role: '',
+    ticketMakerId: '',
   });
+
   const navigate = useNavigate();
 
-  // Prevent scroll on mount and clean up on unmount
   useEffect(() => {
-    // Disable scroll
     document.body.style.overflow = 'hidden';
     return () => {
-      // Re-enable scroll on unmount
       document.body.style.overflow = 'auto';
     };
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (form.role !== 'Ticket Maker') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'Only Ticket Maker registration is allowed from this page.',
+        confirmButtonColor: '#d33',
+      });
+      return;
+    }
+
+    if (!form.ticketMakerId.trim()) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing Ticket Maker ID',
+        text: 'Please provide a valid Ticket Maker ID.',
+        confirmButtonColor: '#f0ad4e',
+      });
+      return;
+    }
+
     try {
       await axios.post('http://localhost:5000/api/auth/register', form);
       Swal.fire({
@@ -56,8 +76,8 @@ export default function Register() {
   return (
     <Box
       sx={{
-        height: '100vh', // force full viewport height
-        overflow: 'hidden', // no scrollbars
+        height: '100vh',
+        overflow: 'hidden',
         backgroundImage:
           "url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1470&q=80')",
         backgroundRepeat: 'no-repeat',
@@ -77,13 +97,12 @@ export default function Register() {
           bgcolor: 'rgba(255,255,255,0.9)',
           p: 4,
           borderRadius: 3,
-          boxShadow:
-            '0 8px 32px 0 rgba(31, 38, 135, 0.37)', // glass effect
+          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
           backdropFilter: 'blur(8.5px)',
           WebkitBackdropFilter: 'blur(8.5px)',
           border: '1px solid rgba(255, 255, 255, 0.18)',
-          overflowY: 'auto', // allow scroll inside form if needed
-          maxHeight: '90vh', // prevent form from overflowing viewport
+          overflowY: 'auto',
+          maxHeight: '90vh',
         }}
       >
         <Typography
@@ -131,12 +150,25 @@ export default function Register() {
             >
               <MenuItem value="">Select Role</MenuItem>
               <MenuItem value="Ticket Maker">Ticket Maker</MenuItem>
-              <MenuItem value="Checker">Checker</MenuItem>
-              <MenuItem value="DFS Team">DFS Team</MenuItem>
-              <MenuItem value="IT Team">IT Team</MenuItem>
-              <MenuItem value="Admin">Admin</MenuItem>
+              {/* Disabled other roles for this form */}
+              <MenuItem value="Checker" disabled>Checker</MenuItem>
+              <MenuItem value="DFS Team" disabled>DFS Team</MenuItem>
+              <MenuItem value="IT Team" disabled>IT Team</MenuItem>
+              <MenuItem value="Admin" disabled>Admin</MenuItem>
             </Select>
           </FormControl>
+
+          {form.role === 'Ticket Maker' && (
+            <TextField
+              label="Ticket Maker ID"
+              variant="outlined"
+              fullWidth
+              value={form.ticketMakerId}
+              onChange={(e) => setForm({ ...form, ticketMakerId: e.target.value })}
+              required
+            />
+          )}
+
           <Button type="submit" variant="contained" color="primary" size="large" fullWidth>
             Register
           </Button>
