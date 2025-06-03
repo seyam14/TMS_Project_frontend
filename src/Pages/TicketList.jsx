@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-vars */
-// src/pages/TicketList.jsx
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
@@ -50,7 +49,7 @@ export default function TicketList() {
       await axios.put(`http://localhost:5000/api/tickets/${id}`, update, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      Swal.fire('Success', 'Ticket updated and creator notified.', 'success');
+      Swal.fire('Success', 'Ticket updated successfully.', 'success');
       fetchTickets();
     } catch (err) {
       Swal.fire('Error', 'Failed to update ticket.', 'error');
