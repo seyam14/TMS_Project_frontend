@@ -1,11 +1,11 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 // src/pages/TicketList.jsx
-
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
 import { useAuth } from '../context/AuthContext';
+import ExportCSVButton from '../components/ExportCSVButton';
+import TicketTimeline from '../components/TicketTimeline';
 import {
   Card,
   CardContent,
@@ -14,6 +14,7 @@ import {
   Grid,
   Chip,
   Box,
+  Divider,
 } from '@mui/material';
 
 export default function TicketList() {
@@ -23,6 +24,8 @@ export default function TicketList() {
 
   useEffect(() => {
     fetchTickets();
+    const interval = setInterval(fetchTickets, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   const fetchTickets = async () => {
@@ -30,7 +33,13 @@ export default function TicketList() {
       const res = await axios.get('http://localhost:5000/api/tickets', {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setTickets(res.data);
+
+      const filtered =
+        user.role === 'Maker'
+          ? res.data.filter((t) => t.createdBy === user.email)
+          : res.data;
+
+      setTickets(filtered);
     } catch (err) {
       Swal.fire('Error', 'Unable to fetch tickets.', 'error');
     }
@@ -53,7 +62,7 @@ export default function TicketList() {
       title: 'Reject Ticket',
       input: 'textarea',
       inputLabel: 'Remarks',
-      inputPlaceholder: 'Enter remarks for rejection...',
+      inputPlaceholder: 'Enter rejection reason...',
       showCancelButton: true,
     });
 
@@ -100,7 +109,7 @@ export default function TicketList() {
             onClick={() =>
               updateTicket(ticket._id, {
                 status: 'Resolved',
-                comments: 'Issue resolved',
+                comments: 'Issue resolved successfully.',
               })
             }
           >
@@ -113,11 +122,27 @@ export default function TicketList() {
     return null;
   };
 
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Resolved':
+        return 'success';
+      case 'Rejected':
+        return 'error';
+      case 'Assigned':
+        return 'info';
+      default:
+        return 'warning';
+    }
+  };
+
   return (
     <div className="p-4 md:p-6 lg:p-8">
-      <Typography variant="h4" className="mb-6 text-center font-bold">
-        Ticket Management
+      <Typography variant="h4" className="mb-6 text-center font-bold text-xl md:text-2xl">
+        {user.role === 'Maker' ? 'My Tickets' : 'All Tickets'}
       </Typography>
+
+      {/* 🔽 Export Button */}
+      {user.role !== 'Maker' && <ExportCSVButton data={tickets} />}
 
       <Grid container spacing={4}>
         {tickets.map((ticket) => (
@@ -127,27 +152,29 @@ export default function TicketList() {
                 <Typography variant="h6" gutterBottom>
                   {ticket.title}
                 </Typography>
-                <Typography variant="body2" className="text-gray-600 mb-2">
+                <Typography variant="body2" className="text-gray-700 mb-2">
                   {ticket.description}
                 </Typography>
 
                 <div className="mb-2">
                   <Chip label={`Priority: ${ticket.priority}`} className="mr-2" />
-                  <Chip
-                    label={`Status: ${ticket.status}`}
-                    color={
-                      ticket.status === 'Resolved'
-                        ? 'success'
-                        : ticket.status === 'Rejected'
-                        ? 'error'
-                        : 'warning'
-                    }
-                  />
+                  <Chip label={`Status: ${ticket.status}`} color={getStatusColor(ticket.status)} />
                 </div>
 
-                <Typography variant="caption" className="block text-gray-500 mb-2">
+                <Typography variant="caption" className="block text-gray-600 mb-1">
                   Assigned to: {ticket.assignedTo || 'N/A'}
                 </Typography>
+
+                {ticket.remarks && (
+                  <Typography variant="caption" className="block text-red-600 mb-1">
+                    Remarks: {ticket.remarks}
+                  </Typography>
+                )}
+                {ticket.comments && (
+                  <Typography variant="caption" className="block text-green-700 mb-1">
+                    Comments: {ticket.comments}
+                  </Typography>
+                )}
 
                 {ticket.attachments?.map((file) => (
                   <a
@@ -160,6 +187,10 @@ export default function TicketList() {
                     View Attachment
                   </a>
                 ))}
+
+                {/* 🕒 Ticket History Timeline */}
+                <Divider className="my-2" />
+                <TicketTimeline ticket={ticket} />
 
                 {renderActions(ticket)}
               </CardContent>
