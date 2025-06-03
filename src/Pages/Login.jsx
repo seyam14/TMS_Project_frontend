@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import Swal from 'sweetalert2';
 
 import {
   Box,
@@ -11,15 +12,16 @@ import {
   Typography,
   Paper,
   InputAdornment,
+  CircularProgress,
 } from '@mui/material';
 import { Email, Lock } from '@mui/icons-material';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // Disable scroll on mount and enable on unmount
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
@@ -29,20 +31,38 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       const res = await axios.post('http://localhost:5000/api/auth/login', form);
       login(res.data.user, res.data.token);
-      navigate('/dashboard');
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Login Successful!',
+        text: ' TMS dashboard...',
+        timer: 1500,
+        showConfirmButton: false,
+      });
+
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500);
     } catch (err) {
-      alert('Login failed');
+      Swal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: err?.response?.data?.message || 'Invalid email or password',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <Box
       sx={{
-        height: '100vh',         // fix height to viewport
-        overflow: 'hidden',      // disable scrolling inside container
+        height: '100vh',
+        overflow: 'hidden',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -126,9 +146,10 @@ export default function Login() {
             color="primary"
             fullWidth
             size="large"
-            sx={{ mt: 4, fontWeight: '600' }}
+            sx={{ mt: 4, fontWeight: '600', height: 45 }}
+            disabled={loading}
           >
-            Login
+            {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Login'}
           </Button>
         </form>
 
