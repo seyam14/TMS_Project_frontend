@@ -35,8 +35,8 @@ export default function TicketList() {
       });
 
       const filtered =
-        user.role === 'Maker'
-          ? res.data.filter((t) => t.createdBy === user.email)
+        user.role === 'Ticket Maker'
+          ? res.data.filter((t) => t.createdBy === user.id)
           : res.data;
 
       setTickets(filtered);
@@ -73,6 +73,8 @@ export default function TicketList() {
 
   const renderActions = (ticket) => {
     if (user.role === 'Checker' && ticket.status === 'Pending') {
+      const isIT = ticket.description.toLowerCase().includes('system');
+
       return (
         <Box className="flex gap-2 mt-4">
           <Button
@@ -80,10 +82,7 @@ export default function TicketList() {
             color="primary"
             onClick={() =>
               updateTicket(ticket._id, {
-                status: 'Assigned',
-                assignedTo: ticket.description.toLowerCase().includes('system')
-                  ? 'IT Team'
-                  : 'DFS Team',
+                status: isIT ? 'Forwarded to IT' : 'Forwarded to DFS',
               })
             }
           >
@@ -98,7 +97,7 @@ export default function TicketList() {
 
     if (
       (user.role === 'DFS Team' || user.role === 'IT Team') &&
-      ticket.assignedTo === user.role &&
+      ticket.assignedTo === user.id &&
       ticket.status === 'Assigned'
     ) {
       return (
@@ -136,22 +135,28 @@ export default function TicketList() {
   };
 
   return (
-    <div className="p-4 md:p-6 lg:p-8">
-      <Typography variant="h4" className="mb-6 text-center font-bold text-xl md:text-2xl">
-        {user.role === 'Maker' ? 'My Tickets' : 'All Tickets'}
+    <div className="p-4 md:p-6 lg:p-8 bg-gray-50 min-h-screen">
+      <Typography
+        variant="h4"
+        className="mb-6 text-center font-bold text-xl md:text-2xl text-gray-800"
+      >
+        {user.role === 'Ticket Maker' ? 'My Tickets' : 'All Tickets'}
       </Typography>
 
-      {/* 🔽 Export Button */}
-      {user.role !== 'Maker' && <ExportCSVButton data={tickets} />}
+      {user.role !== 'Ticket Maker' && <ExportCSVButton data={tickets} />}
 
       <Grid container spacing={4}>
         {tickets.map((ticket) => (
-          <Grid item xs={12} sm={6} lg={4} key={ticket._id}>
-            <Card className="shadow-md hover:shadow-lg transition duration-300">
+          <Grid item xs={12} sm={6} md={4} key={ticket._id}>
+            <Card
+              className="transition duration-300 shadow hover:shadow-lg rounded-xl border"
+              sx={{ minHeight: 400, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+            >
               <CardContent>
-                <Typography variant="h6" gutterBottom>
+                <Typography variant="h6" gutterBottom className="text-blue-800 font-semibold">
                   {ticket.title}
                 </Typography>
+
                 <Typography variant="body2" className="text-gray-700 mb-2">
                   {ticket.description}
                 </Typography>
@@ -188,12 +193,11 @@ export default function TicketList() {
                   </a>
                 ))}
 
-                {/* 🕒 Ticket History Timeline */}
-                <Divider className="my-2" />
+                <Divider className="my-3" />
                 <TicketTimeline ticket={ticket} />
-
-                {renderActions(ticket)}
               </CardContent>
+
+              <Box className="p-4">{renderActions(ticket)}</Box>
             </Card>
           </Grid>
         ))}
