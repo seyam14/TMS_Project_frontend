@@ -33,10 +33,12 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { label: 'Tickets', to: '/tickets' },
-    user?.role === 'TicketMaker' && { label: 'Create Ticket', to: '/create' },
-    user?.role === 'Admin' && { label: 'Admin', to: '/admin' }
-  ].filter(Boolean);
+  user && { label: 'Dashboard', to: '/dashboard' }, // Show Dashboard to all logged-in users
+  { label: 'Tickets', to: '/tickets' },
+  user?.role === 'TicketMaker' && { label: 'Create Ticket', to: '/create' },
+  user?.role === 'Admin' && { label: 'Admin', to: '/admin' }
+].filter(Boolean);
+
 
   const authLinks = user
     ? [{ label: 'Logout', action: logout }]
