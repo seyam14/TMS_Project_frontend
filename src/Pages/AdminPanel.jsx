@@ -38,7 +38,7 @@ const AdminPanel = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/users', {
+      const res = await axios.get('https://tms-backend-q1jq.onrender.com/api/users', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data);
@@ -58,7 +58,7 @@ const AdminPanel = () => {
     }
 
     try {
-      await axios.post('http://localhost:5000/api/auth/register', form, {
+      await axios.post('https://tms-backend-q1jq.onrender.com/api/auth/register', form, {
         headers: { Authorization: `Bearer ${token}` },
       });
       Swal.fire('Success', 'User created successfully!', 'success');
@@ -87,7 +87,7 @@ const AdminPanel = () => {
 
     if (confirm.isConfirmed) {
       try {
-        await axios.delete(`http://localhost:5000/api/users/${id}`, {
+        await axios.delete(`https://tms-backend-q1jq.onrender.com/api/users/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         Swal.fire('Deleted!', 'User has been deleted.', 'success');

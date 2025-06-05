@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000', // Adjust if deployed elsewhere
+  baseURL: 'https://tms-backend-q1jq.onrender.com', // Adjust if deployed elsewhere
 });
 
 api.interceptors.request.use((config) => {

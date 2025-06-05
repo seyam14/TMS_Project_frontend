@@ -29,7 +29,7 @@ export default function TicketList() {
 
   const fetchTickets = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/tickets', {
+      const res = await axios.get('https://tms-backend-q1jq.onrender.com/api/tickets', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -46,7 +46,7 @@ export default function TicketList() {
 
   const updateTicket = async (id, update) => {
     try {
-      await axios.put(`http://localhost:5000/api/tickets/${id}`, update, {
+      await axios.put(`https://tms-backend-q1jq.onrender.com/api/tickets/${id}`, update, {
         headers: { Authorization: `Bearer ${token}` },
       });
       Swal.fire('Success', 'Ticket updated successfully.', 'success');
@@ -183,7 +183,7 @@ export default function TicketList() {
                 {ticket.attachments?.map((file) => (
                   <a
                     key={file}
-                    href={`http://localhost:5000/${file}`}
+                    href={`https://tms-backend-q1jq.onrender.com/${file}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block text-blue-600 text-sm mt-2 hover:underline"

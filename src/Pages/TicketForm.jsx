@@ -55,7 +55,7 @@ export default function TicketForm() {
         }
       }
 
-      await axios.post('http://localhost:5000/api/tickets', formData, {
+      await axios.post('https://tms-backend-q1jq.onrender.com/api/tickets', formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',

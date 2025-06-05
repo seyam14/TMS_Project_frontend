@@ -56,7 +56,7 @@ export default function Register() {
     }
 
     try {
-      await axios.post('http://localhost:5000/api/auth/register', form);
+      await axios.post('https://tms-backend-q1jq.onrender.com/api/auth/register', form);
       Swal.fire({
         icon: 'success',
         title: 'Registration Successful',
