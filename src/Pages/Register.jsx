@@ -20,7 +20,7 @@ export default function Register() {
     email: '',
     password: '',
     role: '',
-    ticketMakerId: '',
+    ticketId: '', // ✅ Renamed from ticketMakerId
   });
 
   const navigate = useNavigate();
@@ -45,7 +45,7 @@ export default function Register() {
       return;
     }
 
-    if (!form.ticketMakerId.trim()) {
+    if (!form.ticketId.trim()) {
       Swal.fire({
         icon: 'warning',
         title: 'Missing Ticket Maker ID',
@@ -56,7 +56,7 @@ export default function Register() {
     }
 
     try {
-      await axios.post('https://tms-backend-q1jq.onrender.com/api/auth/register', form);
+      await axios.post('http://localhost:5000/api/auth/register', form);
       Swal.fire({
         icon: 'success',
         title: 'Registration Successful',
@@ -114,6 +114,7 @@ export default function Register() {
         >
           Register
         </Typography>
+
         <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '1.25rem' }}>
           <TextField
             label="Name"
@@ -150,7 +151,6 @@ export default function Register() {
             >
               <MenuItem value="">Select Role</MenuItem>
               <MenuItem value="Ticket Maker">Ticket Maker</MenuItem>
-              {/* Disabled other roles for this form */}
               <MenuItem value="Checker" disabled>Checker</MenuItem>
               <MenuItem value="DFS Team" disabled>DFS Team</MenuItem>
               <MenuItem value="IT Team" disabled>IT Team</MenuItem>
@@ -163,8 +163,8 @@ export default function Register() {
               label="Ticket Maker ID"
               variant="outlined"
               fullWidth
-              value={form.ticketMakerId}
-              onChange={(e) => setForm({ ...form, ticketMakerId: e.target.value })}
+              value={form.ticketId}
+              onChange={(e) => setForm({ ...form, ticketId: e.target.value })}
               required
             />
           )}
@@ -172,6 +172,7 @@ export default function Register() {
           <Button type="submit" variant="contained" color="primary" size="large" fullWidth>
             Register
           </Button>
+
           <Typography variant="body2" align="center" mt={2}>
             Already have an account?{' '}
             <Link to="/login" className="text-blue-600 underline">
